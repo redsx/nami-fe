@@ -40,6 +40,8 @@ exports.cssLoaders = function (options) {
         })
       })
     }
+
+    return loaders;
   }
 
   return {
