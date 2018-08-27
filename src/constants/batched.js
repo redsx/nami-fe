@@ -1,0 +1,4 @@
+export default {
+  BATCHED_ACTIONS: 'BATCHED_ACTIONS',
+  INIT_STATE: 'INIT_STATE',
+};
