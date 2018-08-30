@@ -3,10 +3,15 @@ import {Provider} from 'react-redux';
 import { 
   IntlProvider,
   addLocaleData,
-  FormattedMessage,
 } from 'react-intl';
+import {
+  BrowserRouter as Router,
+  Route,
+} from 'react-router-dom';
 import chooseLocale from './locales/index';
 import store from './store/index.js';
+// pages
+import Login from './pages/login/login';
 
 function App(props) {
   const appLocale = chooseLocale(props.lang);
@@ -19,13 +24,12 @@ function App(props) {
         messages={appLocale.messages}
         formats={appLocale.formats}
       >
-        <FormattedMessage
-          tagName="span"
-          id="edit"
-          values={{name: 'xxx'}}
-          defaultMessage="{name} 是一个用于构建用户界面的 JAVASCRIPT 库。"
-          description="{name} 是什么？"
-        ></FormattedMessage>
+        <Router>
+          <div>
+            <Route path="/" />
+            <Route path="/login"  component={Login} />
+          </div>
+        </Router>
       </IntlProvider>
     </Provider>
   ); 
