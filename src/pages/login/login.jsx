@@ -4,6 +4,8 @@ import autobind from 'autobind-decorator';
 import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-intl';
 import InputContainer from './InputContainer.jsx';
 import SignOwl from '../../components/SignOwl.jsx';
+import { checkUser, login, signUp } from '../../actions/socket/user';
+import socket from '../../config/socket';
 
 const message = defineMessages({
   login: {
@@ -22,9 +24,9 @@ const message = defineMessages({
     id: 'login.nickname',
     defaultMessage: 'nickname',
   },
-  email: {
-    id: 'login.email',
-    defaultMessage: 'email',
+  nickname: {
+    id: 'login.nickname',
+    defaultMessage: 'nickname',
   },
 });
 
@@ -33,56 +35,94 @@ class Login extends Component {
     super(props);
     this.state = {
       errorInput: immutable.fromJS({}),
-      btnDisabled: false,
+      loginDisabled: true,
       isFocus: false,
     };
   }
   @autobind
-  handleBlur(e, name){
-    let target = e.target || {};
-    name = name || target.name;
-    if(target.value === null || target.value === ''){
-      this.setState({
-        errorInput: this.state.errorInput.set(name, true)
-      });
+  handleChekUser(nickname, forceImplement = false) {
+    if(this.isCalled && !forceImplement) return;
+    checkUser({ nickname }).then((res) => {
+      this.isCalled = false;
+      if(res.status === 1002) {
+        this.setState(() => ({loginDisabled: true}));
+      } else if (res.status === 1001) {
+        this.setState(() => ({loginDisabled: false}));
+      }
+      console.log('chekuser cb: ', res);
+    });
+  }
+  @autobind
+  handleBlur(e){
+    const target = e.target || {};
+    const nickname = target.value;
+    this.handleChekUser(nickname);
+  }
+  @autobind
+  handleChange(e){
+    const target = e.target || {};
+    const nickname = target.value;
+    this.handleChekUser(nickname);
+  }
+  @autobind
+  handleCheckParam({nickname = '', password = ''}) {
+    if(!nickname) {
+      // 提示错误
+      return false;
+    }
+    if(!password) {
+      // 提示错误
+      return false;
+    }
+    return true;
+  }
+  @autobind
+  handleSign(info){
+    if(!this.isSingning) {
+      this.isSingning = true;
+      (() => this.state.loginDisabled ? signUp(info) : login(info))()
+        .then((res)=>{
+          this.isSingning = false;
+          console.log(res);
+          if(res.status === 0) {
+            localStorage.setItem('token', resault.token);
+            // mergeUserInfo({token: resault.token});
+            // browserHistory.push('/');
+          } else {
+            // 提示错误
+          }
+        })
+        .catch((err)=>{
+          this.isSingning = false;
+          // 提示错误
+        });
+    } else {
+      // 提示正在登录
     }
   }
   @autobind
-  handleChange(e, name){
-    let target = e.target || {};
-    name = name || target.name;
-    if(target.value !== '' && this.state.errorInput.get(name)){
-      this.setState({
-        errorInput: this.state.errorInput.set(name, false)
-      });
-    }
-  }
-  @autobind
-  handleSign(info, isLogin){
-    this.setState({btnDisabled: true});
-    (() => isLogin? login(info) : signUp(info))()
-      .then((resault)=>{
-        localStorage.setItem('token', resault.token);
-        mergeUserInfo({token: resault.token});
-        browserHistory.push('/');
-      })
-      .catch((err)=>{
-        this.setState({btnDisabled: false});
-        // pushSnackbar(language[err]);
-      });
-  }
-  @autobind
-  handleClick(){
-    let email = this.email.value? this.email.value.trim() : '',
-      password = this.password.value? this.password.value.trim() : '';
-    if(email && password){
-      this.props.handleSign({email, password}, true);
-    }
+  handleClick(isLogin){
+    return () => {
+      // this.state.loginDisabled
+      if(isLogin && this.state.loginDisabled) {
+        // 提示该账号不存在，点击注册可注册该账号
+        console.log('提示该账号不存在，点击注册可注册该账号');
+      }
+      if(!isLogin && !this.state.loginDisabled) {
+        // 提示该账号已存在，点击登录可登录该账号
+        console.log('提示该账号已存在，点击登录可登录该账号');
+      }
+      const nickname = this.nickname.value? this.nickname.value.trim() : '';
+      const password = this.password.value? this.password.value.trim() : '';
+      if(this.handleCheckParam({nickname, password})) {
+        this.handleSign({nickname, password});
+      }
+    };
   }
   render(){
-    let { errorInput, btnDisabled } = this.state;
-    let { handleBlur, handleChange } = this;
-    let {formatMessage} = this.props.intl;
+    const { errorInput, loginDisabled } = this.state;
+    const { handleBlur, handleChange } = this;
+    const {formatMessage} = this.props.intl;
     return (
       <div className = 'sign-container'>
         <div className = 'sign'>
@@ -94,13 +134,12 @@ class Login extends Component {
               <label className = 'sign-control-label'><i className = 'icon sign-icon'>&#xe92e;</i></label>
               <input
                 autoComplete='off'
-                name = 'email' 
-                type = 'email' 
-                placeholder = {formatMessage(message.email)}
-                ref = {ref => this.email = ref}
+                name = 'nickname'
+                placeholder = {formatMessage(message.nickname)}
+                ref = {ref => this.nickname = ref}
                 onBlur = {(e)=>handleBlur(e)}
                 onChange = {(e)=>handleChange(e)}
-                className = {errorInput.get('email') ? 'login-error-input' : ''}
+                className = {errorInput.get('nickname') ? 'login-error-input' : ''}
               />
             </InputContainer>
             <InputContainer>
@@ -122,8 +161,18 @@ class Login extends Component {
             </InputContainer>
           </div>
           <div className = 'sign-actions'>
-            {/* <span className = 'sign-link-btn'><Link to = '/signup'>{formatMessage(message.signUp)}</Link></span> */}
-            <button className = {btnDisabled?'sign-btn-disabled':'sign-btn'} onClick = {this.handleClick} disabled = {btnDisabled}> {formatMessage(message.login)} </button>
+            <button 
+              className = {loginDisabled ? 'sign-in-disabled' : 'sign-in-btn'}
+              onClick = {this.handleClick(true)}
+            > 
+              <span>{formatMessage(message.login)}</span>
+            </button>
+            <button 
+              className = {!loginDisabled ? 'sign-up-disabled' : 'sign-up-btn'}
+              onClick = {this.handleClick(false)}
+            > 
+              <span>{formatMessage(message.signUp)}</span>
+            </button>
           </div>
         </div>
       </div>
