@@ -5,7 +5,7 @@ import {intlShape, injectIntl, defineMessages, FormattedMessage} from 'react-int
 import InputContainer from './InputContainer.jsx';
 import SignOwl from '../../components/SignOwl.jsx';
 import { checkUser, login, signUp } from '../../actions/socket/user';
-import socket from '../../config/socket';
+import notice from '../../plugin/notification/index';
 
 const message = defineMessages({
   login: {
@@ -68,6 +68,10 @@ class Login extends Component {
   handleCheckParam({nickname = '', password = ''}) {
     if(!nickname) {
       // 提示错误
+      notice.open({
+        duration: 2,
+        message: 'nickname error!!!!!!!!!'
+      });
       return false;
     }
     if(!password) {

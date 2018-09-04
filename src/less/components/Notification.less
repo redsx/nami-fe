@@ -1,0 +1,42 @@
+@notification-prefix-cls: nami;
+@zindex-notification: 99;
+@notification-width: 500px;
+
+.@{notification-prefix-cls} {
+  position: fixed;
+  z-index: @zindex-notification;
+  font-size: 16px;
+  bottom: 15px;
+  left: 19px;
+  &-notice {
+    text-align: center;
+    padding: 12px;
+    line-height: 60px;
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+  }
+  &-notice-container {
+    text-align: center;
+    margin: 6px 0px;
+  }
+  &-enter {
+     opacity: 0.01;
+     transform: translateY(20px);
+  }
+  &-exit {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+  &-enter&-enter-active {
+    opacity: 1;
+    transform: translateY(0px);
+    transition: all 200ms;
+  }
+
+  &-exit&-exit-active {
+    opacity: 0.01;
+    transform: translateY(20px);
+    transition: all 200ms;
+  }
+}
