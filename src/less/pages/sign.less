@@ -14,6 +14,16 @@
   position: relative;
   overflow: visible;
 }
+.github-sign {
+  margin: auto;
+  position: absolute;
+  margin-left: -56px;
+  left: 50%;
+  top: 460px;
+  & > a {
+    color: #a09d9d;
+  }
+}
 
 .sign-pad{
   padding: 30px;
@@ -54,6 +64,7 @@
   background: #f7f7f7;
   padding: 15px 30px;
   text-align: right;
+  position: relative;
 }
 .sign-actions a{
   color: #777;
@@ -115,15 +126,19 @@
 .sign-gender input{
   width: inherit;
 }
-.sign-icon{
+.sign-icon {
   font-size: 20px;
+}
+.sing-github-icon {
+  .sign-icon;
+  padding: 0px 6px;
 }
 .login-error-input{
   border: 1px solid rgba(255, 0, 0, 0.6) !important;
   box-shadow: 0 0 5px 1px rgba(255, 0, 0, 0.6);
 }
 .sign-link-btn{
-  padding: 0px 15px;
+  position: absolute;
 }
 .login-SignOwl{
   top: 100px;
